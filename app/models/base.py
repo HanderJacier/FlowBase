@@ -14,9 +14,7 @@ class Product(Base):
     quantity = Column(Integer, default=0)
     price = Column(Integer, default=0)
 
-# 3. Kết nối Database và tạo bảng
 if __name__ == "__main__":
-    # Tạo engine (file stash_forge.db sẽ xuất hiện trong thư mục bạn đứng chạy code)
     engine = create_engine("sqlite:///stash_forge.db")
     
     Base.metadata.create_all(engine)
