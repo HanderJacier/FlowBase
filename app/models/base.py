@@ -19,6 +19,5 @@ if __name__ == "__main__":
     # Tạo engine (file stash_forge.db sẽ xuất hiện trong thư mục bạn đứng chạy code)
     engine = create_engine("sqlite:///stash_forge.db")
     
-    # Lệnh đúng để tạo tất cả các bảng đã định nghĩa
     Base.metadata.create_all(engine)
     print("Đã tạo Database và bảng Product thành công!")
