@@ -1,55 +1,781 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>TaskForge | Sync & Edit</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          animation: {
-            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-          }
-        }
-      }
-    }
-  </script>
+  <title>FlowBase | Quản lý Công việc</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Google Font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <!-- AOS Animation -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
   <script>
     // ✅ THIẾT LẬP THEME NGAY LẬP TỨC (Chống nháy trắng)
     (function() {
       const savedTheme = localStorage.getItem('theme') || 'light';
-      if (savedTheme === 'dark') {
-        document.documentElement.classList.add('dark');
-      }
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
     })();
     
     // ✅ GET CSRF TOKEN
     const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
   </script>
+
   <style>
-    body { 
-      transition: background-color 0.3s, color 0.3s; 
+    :root {
+      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --success-gradient: linear-gradient(135deg, #2af598 0%, #009efd 100%);
+      --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     }
-    html.dark body { 
-      background-color: #0f172a; 
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
     }
-    .task-item { 
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+
+    [data-bs-theme="dark"] body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
     }
+
+    /* Navbar */
+    .navbar-custom {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    [data-bs-theme="dark"] .navbar-custom {
+      background: rgba(30, 30, 60, 0.95);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .logo-icon {
+      width: 42px;
+      height: 42px;
+      background: var(--primary-gradient);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .brand-text {
+      font-weight: 800;
+      font-size: 1.5rem;
+      background: var(--primary-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Main Card */
+    .main-card {
+      background: rgba(255, 255, 255, 0.98);
+      border-radius: 24px;
+      border: none;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    [data-bs-theme="dark"] .main-card {
+      background: rgba(30, 30, 60, 0.98);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Stats Cards */
+    .stat-card {
+      border-radius: 16px;
+      padding: 1.25rem;
+      transition: all 0.3s ease;
+      border: none;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card.total {
+      background: var(--primary-gradient);
+      color: white;
+    }
+
+    .stat-card.completed {
+      background: var(--success-gradient);
+      color: white;
+    }
+
+    .stat-card.pending {
+      background: var(--warning-gradient);
+      color: white;
+    }
+
+    .stat-icon {
+      font-size: 2rem;
+      opacity: 0.9;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: 0.875rem;
+      opacity: 0.9;
+      font-weight: 500;
+    }
+
+    /* Task Input */
+    .task-input {
+      border-radius: 16px;
+      padding: 16px 20px;
+      font-size: 1rem;
+      border: 2px solid rgba(0, 0, 0, 0.08);
+      background: rgba(248, 249, 250, 0.8);
+      transition: all 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .task-input {
+      background: rgba(45, 45, 80, 0.8);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: white;
+    }
+
+    .task-input:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
+      background: white;
+    }
+
+    [data-bs-theme="dark"] .task-input:focus {
+      background: rgba(30, 30, 60, 1);
+    }
+
+    .btn-add-task {
+      border-radius: 16px;
+      padding: 16px 32px;
+      font-weight: 600;
+      font-size: 1rem;
+      background: var(--primary-gradient);
+      border: none;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+      transition: all 0.3s ease;
+    }
+
+    .btn-add-task:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    }
+
+    /* Task Item */
+    .task-item {
+      border-radius: 16px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.75rem;
+      background: white;
+      border: 1px solid rgba(0, 0, 0, 0.05);
+      transition: all 0.3s ease;
+    }
+
+    [data-bs-theme="dark"] .task-item {
+      background: rgba(45, 45, 80, 0.6);
+      border-color: rgba(255, 255, 255, 0.05);
+    }
+
     .task-item:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      transform: translateX(5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     }
-    html.dark .task-item:hover {
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+
+    .task-item.completed {
+      opacity: 0.7;
+    }
+
+    .task-item.completed .task-title {
+      text-decoration: line-through;
+      color: var(--bs-secondary-color);
+    }
+
+    .task-checkbox {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      border: 2px solid #667eea;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
+    }
+
+    .task-checkbox:hover {
+      background: rgba(102, 126, 234, 0.1);
+    }
+
+    .task-checkbox.checked {
+      background: var(--success-gradient);
+      border-color: transparent;
+      color: white;
+    }
+
+    /* Theme Toggle */
+    .theme-toggle {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(102, 126, 234, 0.1);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .theme-toggle:hover {
+      background: rgba(102, 126, 234, 0.2);
+      transform: rotate(15deg);
+    }
+
+    /* Modal */
+    .modal-custom .modal-content {
+      border-radius: 20px;
+      border: none;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Loading */
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .loading-spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(102, 126, 234, 0.3);
+      border-radius: 3px;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .slide-in {
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
-<body class="min-h-screen bg-gradient-to-br from-slate-200 to-blue-200 dark:from-gray-900 dark:to-gray-800 text-gray-900 dark:text-gray-100 p-2 sm:p-4">
+<body>
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="loading-overlay d-none">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+      <a class="d-flex align-items-center gap-3 text-decoration-none" href="/">
+        <div class="logo-icon">
+          <i class="bi bi-kanban text-white fs-5"></i>
+        </div>
+        <span class="brand-text">FlowBase</span>
+      </a>
+
+      <div class="d-flex align-items-center gap-3">
+        <button class="theme-toggle" id="themeToggle" title="Chuyển đổi giao diện">
+          <i class="bi bi-moon-stars" id="themeIcon"></i>
+        </button>
+        <a href="/logout" class="btn btn-danger btn-logout">
+          <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="pt-5 mt-4">
+    <div class="container py-4">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div class="main-card p-4" data-aos="fade-up">
+            <!-- Header -->
+            <div class="text-center mb-4">
+              <h1 class="display-6 fw-bold mb-2">
+                <i class="bi bi-list-task text-primary me-2"></i>
+                Danh sách công việc
+              </h1>
+              <p class="text-muted">Quản lý công việc của bạn một cách hiệu quả</p>
+              <hr class="my-4 opacity-25">
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="mb-4">
+              <div class="row g-2">
+                <div class="col">
+                  <input 
+                    type="text" 
+                    id="taskInput" 
+                    class="form-control task-input" 
+                    placeholder="Nhập công việc mới..."
+                    maxlength="200"
+                  >
+                </div>
+                <div class="col-auto">
+                  <button id="addBtn" class="btn btn-primary btn-add-task">
+                    <i class="bi bi-plus-lg me-2"></i>Thêm
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="row g-3 mb-4">
+              <div class="col-4">
+                <div class="stat-card total" data-aos="fade-up" data-aos-delay="100">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="stat-number" id="totalTasks">0</div>
+                      <div class="stat-label">Tổng cộng</div>
+                    </div>
+                    <div class="stat-icon">
+                      <i class="bi bi-kanban"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-card completed" data-aos="fade-up" data-aos-delay="200">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="stat-number" id="completedTasks">0</div>
+                      <div class="stat-label">Hoàn thành</div>
+                    </div>
+                    <div class="stat-icon">
+                      <i class="bi bi-check-circle"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-4">
+                <div class="stat-card pending" data-aos="fade-up" data-aos-delay="300">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                      <div class="stat-number" id="pendingTasks">0</div>
+                      <div class="stat-label">Đang làm</div>
+                    </div>
+                    <div class="stat-icon">
+                      <i class="bi bi-hourglass-split"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Filter -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h5 class="fw-bold mb-0">
+                <i class="bi bi-collection me-2 text-primary"></i>Danh sách
+              </h5>
+              <select id="statusFilter" class="form-select w-auto" style="border-radius: 12px; width: auto;">
+                <option value="all">Tất cả</option>
+                <option value="pending">Chờ làm</option>
+                <option value="completed">Hoàn thành</option>
+              </select>
+            </div>
+
+            <!-- Task List -->
+            <div class="task-list" id="taskList" style="max-height: 400px; overflow-y: auto;">
+              <!-- Tasks will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="text-center py-5 d-none">
+              <div class="mb-3">
+                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+              </div>
+              <h4 class="fw-bold mb-2">Chưa có công việc nào</h4>
+              <p class="text-muted mb-0">Hãy thêm công việc đầu tiên của bạn</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-custom">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">
+            <i class="bi bi-exclamation-triangle text-warning me-2"></i>
+            Xác nhận xóa
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Bạn có chắc chắn muốn xóa công việc này?</p>
+          <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" id="confirmDelete" class="btn btn-danger">Xóa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;"></div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- AOS Animation -->
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <script>
+    // Initialize AOS
+    AOS.init({
+      duration: 800,
+      once: true
+    });
+
+    class TaskManager {
+      constructor() {
+        this.tasks = [];
+        this.filter = 'all';
+        this.deleteId = null;
+        this.init();
+      }
+
+      async init() {
+        await this.loadTasks();
+        this.initTheme();
+        this.bindEvents();
+        this.updateStats();
+        this.render();
+      }
+
+      async loadTasks() {
+        try {
+          const response = await fetch('/api/tasks');
+          const data = await response.json();
+          this.tasks = data.tasks || [];
+        } catch (error) {
+          console.error('Error loading tasks:', error);
+          this.tasks = [];
+        }
+      }
+
+      initTheme() {
+        const theme = localStorage.getItem('theme') || 'light';
+        const themeIcon = document.getElementById('themeIcon');
+        
+        if (theme === 'dark') {
+          themeIcon.className = 'bi bi-sun';
+        } else {
+          themeIcon.className = 'bi bi-moon-stars';
+        }
+      }
+
+      // ================= LOADING =================
+      showLoading() {
+        document.getElementById('loadingOverlay').classList.remove('d-none');
+      }
+
+      hideLoading() {
+        document.getElementById('loadingOverlay').classList.add('d-none');
+      }
+
+      // ================= TOAST =================
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        
+        const colors = {
+          success: 'success',
+          error: 'danger',
+          info: 'primary',
+          warning: 'warning'
+        };
+        
+        const icons = {
+          success: 'check-circle',
+          error: 'exclamation-circle',
+          info: 'info-circle',
+          warning: 'exclamation-triangle'
+        };
+        
+        toast.className = `toast show toast-custom bg-${colors[type]} text-white`;
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'assertive');
+        toast.setAttribute('aria-atomic', 'true');
+        toast.innerHTML = `
+          <div class="toast-body d-flex align-items-center gap-2">
+            <i class="bi bi-${icons[type]}"></i>
+            <span>${message}</span>
+          </div>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+          toast.remove();
+        }, 3000);
+      }
+
+      bindEvents() {
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const html = document.documentElement;
+          const themeIcon = document.getElementById('themeIcon');
+          const currentTheme = html.getAttribute('data-bs-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          html.setAttribute('data-bs-theme', newTheme);
+          localStorage.setItem('theme', newTheme);
+          
+          themeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
+        });
+
+        // Add task
+        document.getElementById('addBtn').addEventListener('click', () => this.addTask());
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.addTask();
+        });
+
+        // Filter
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+          this.filter = e.target.value;
+          this.render();
+        });
+
+        // Delete modal
+        document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
+      }
+
+      getFilteredTasks() {
+        switch (this.filter) {
+          case 'pending':
+            return this.tasks.filter(task => !task.done);
+          case 'completed':
+            return this.tasks.filter(task => task.done);
+          default:
+            return this.tasks;
+        }
+      }
+
+      async addTask() {
+        const input = document.getElementById('taskInput');
+        const text = input.value.trim();
+        
+        if (!text) {
+          this.showToast('Vui lòng nhập tên công việc', 'warning');
+          return;
+        }
+        
+        if (text.length > 200) {
+          this.showToast('Tên công việc không được quá 200 ký tự', 'warning');
+          return;
+        }
+
+        this.showLoading();
+        
+        const formData = new FormData();
+        formData.append('name', text);
+
+        try {
+          const response = await fetch('/add', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': CSRF_TOKEN
+            },
+            body: formData
+          });
+          
+          if (response.ok) {
+            input.value = '';
+            input.focus();
+            await this.loadTasks();
+            this.updateStats();
+            this.render();
+            this.showToast('Thêm công việc thành công!', 'success');
+          }
+        } catch (error) {
+          console.error('Error adding task:', error);
+          this.showToast('Lỗi khi thêm công việc', 'error');
+        } finally {
+          this.hideLoading();
+        }
+      }
+
+      async toggleTask(id) {
+        this.showLoading();
+        
+        try {
+          const response = await fetch(`/toggle/${id}`);
+          
+          if (response.ok) {
+            await this.loadTasks();
+            this.updateStats();
+            this.render();
+            this.showToast('Cập nhật trạng thái thành công!', 'success');
+          }
+        } catch (error) {
+          console.error('Error toggling task:', error);
+          this.showToast('Lỗi khi cập nhật', 'error');
+        } finally {
+          this.hideLoading();
+        }
+      }
+
+      showDeleteModal(id) {
+        this.deleteId = id;
+        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        modal.show();
+      }
+
+      async confirmDelete() {
+        if (!this.deleteId) return;
+        
+        this.showLoading();
+        
+        // Hide modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+        modal.hide();
+
+        try {
+          const response = await fetch(`/delete/${this.deleteId}`, {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': CSRF_TOKEN
+            }
+          });
+          
+          if (response.ok) {
+            await this.loadTasks();
+            this.updateStats();
+            this.render();
+            this.showToast('Xóa công việc thành công!', 'success');
+          }
+        } catch (error) {
+          console.error('Error deleting task:', error);
+          this.showToast('Lỗi khi xóa công việc', 'error');
+        } finally {
+          this.hideLoading();
+          this.deleteId = null;
+        }
+      }
+
+      updateStats() {
+        const total = this.tasks.length;
+        const completed = this.tasks.filter(t => t.done).length;
+        const pending = total - completed;
+        
+        document.getElementById('totalTasks').textContent = total;
+        document.getElementById('completedTasks').textContent = completed;
+        document.getElementById('pendingTasks').textContent = pending;
+      }
+
+      render() {
+        const taskList = document.getElementById('taskList');
+        const emptyState = document.getElementById('emptyState');
+        const filteredTasks = this.getFilteredTasks();
+        
+        if (filteredTasks.length === 0) {
+          taskList.innerHTML = '';
+          emptyState.classList.remove('d-none');
+          return;
+        }
+        
+        emptyState.classList.add('d-none');
+        
+        taskList.innerHTML = filteredTasks.map((task, index) => `
+          <div class="task-item slide-in ${task.done ? 'completed' : ''}" data-aos="fade-left" data-aos-delay="${index * 50}">
+            <div class="d-flex align-items-center gap-3">
+              <div 
+                class="task-checkbox ${task.done ? 'checked' : ''}" 
+                onclick="taskManager.toggleTask(${task.id})"
+              >
+                ${task.done ? '<i class="bi bi-check"></i>' : ''}
+              </div>
+              <div class="flex-grow-1">
+                <span class="task-title fw-medium">${this.escapeHtml(task.name)}</span>
+              </div>
+              <div class="d-flex gap-1">
+                <button 
+                  class="btn btn-outline-danger btn-sm" 
+                  onclick="taskManager.showDeleteModal(${task.id})"
+                  title="Xóa"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+    }
+
+    // Initialize
+    const taskManager = new TaskManager();
+  </script>
+</body>
+</html>
   <!-- Navigation - ✅ ĐÃ FIX -->
 <nav class="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-900/95 backdrop-blur-md shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 p-2 z-40">
   <div class="max-w-3xl mx-auto flex justify-between items-center">

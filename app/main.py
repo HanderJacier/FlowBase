@@ -1,41 +1,97 @@
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from app.models.base import Base, Product
+import uuid
 
-# 1. Kết nối DB
+app = Flask(__name__)
+app.secret_key = 'flowbase-secret-key-2024'
+
+# Database
 engine = create_engine("sqlite:///stash_forge.db")
-Base.metadata.create_all(engine) # Đảm bảo bảng đã được tạo
-
-# 2. Tạo Session để làm việc với DB
+Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
-session = Session()
 
-def run_app():
-    print("--- CHƯƠNG TRÌNH QUẢN LÝ KHO FLOWBASE ---")
-    while True:
-        print("\n1. Thêm sản phẩm")
-        print("2. Xem danh sách kho")
-        print("3. Thoát")
-        choice = input("Chọn chức năng (1-3): ")
+def get_db_session():
+    return Session()
 
-        if choice == '1':
-            name = input("Tên sản phẩm: ")
-            sku = input("Mã SKU: ")
-            qty = int(input("Số lượng: "))
-            
-            new_item = Product(name=name, sku=sku, quantity=qty)
-            session.add(new_item)
-            session.commit()
-            print("Đã thêm thành công!")
+# Helper function for CSRF token
+def generate_csrf_token():
+    if 'csrf_token' not in session:
+        session['csrf_token'] = str(uuid.uuid4())
+    return session['csrf_token']
 
-        elif choice == '2':
-            products = session.query(Product).all()
-            print("\nDANH SÁCH TRONG KHO:")
-            for p in products:
-                print(f"ID: {p.id} | Tên: {p.name} | SKU: {p.sku} | SL: {p.quantity}")
+app.jinja_env.globals['csrf_token'] = generate_csrf_token
 
-        elif choice == '3':
-            break
+# Routes
+@app.route('/')
+def index():
+    session_db = get_db_session()
+    products = session_db.query(Product).all()
+    session_db.close()
+    return render_template('index.html', products=products)
 
-if __name__ == "__main__":
-    run_app()
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/register')
+def register():
+    return render_template('register.html')
+
+@app.route('/api/tasks')
+def api_tasks():
+    session_db = get_db_session()
+    products = session_db.query(Product).all()
+    tasks = [{'id': p.id, 'name': p.name, 'done': p.quantity > 0} for p in products]
+    session_db.close()
+    return jsonify({'tasks': tasks})
+
+@app.route('/add', methods=['POST'])
+def add_task():
+    name = request.form.get('name')
+    if name:
+        session_db = get_db_session()
+        new_product = Product(name=name, sku='', quantity=0)
+        session_db.add(new_product)
+        session_db.commit()
+        session_db.close()
+    return redirect(url_for('index'))
+
+@app.route('/toggle/<int:task_id>')
+def toggle_task(task_id):
+    session_db = get_db_session()
+    product = session_db.query(Product).get(task_id)
+    if product:
+        product.quantity = 1 if product.quantity == 0 else 0
+        session_db.commit()
+    session_db.close()
+    return redirect(url_for('index'))
+
+@app.route('/delete/<int:task_id>', methods=['POST'])
+def delete_task(task_id):
+    session_db = get_db_session()
+    product = session_db.query(Product).get(task_id)
+    if product:
+        session_db.delete(product)
+        session_db.commit()
+    session_db.close()
+    return redirect(url_for('index'))
+
+@app.route('/logout')
+def logout():
+    return redirect(url_for('login'))
+
+@app.route('/csrf_token')
+def csrf_token():
+    return jsonify({'token': generate_csrf_token()})
+
+if __name__ == '__main__':
+    print("🚀 Chạy ứng dụng FlowBase tại: http://127.0.0.1:5000")
+    app.run(debug=True, port=5000)
