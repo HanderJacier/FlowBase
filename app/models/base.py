@@ -12,10 +12,20 @@ class Product(Base):
     name = Column(String, nullable=False)
     sku = Column(String, unique=True, nullable=False)
     quantity = Column(Integer, default=0)
-    price = Column(Integer, default=0)
+    price = Column(Integer, default=0)  
+    employee = Column(String, nullable=False, default='')
+    position = Column(String, nullable=False, default='')
+
+
+class User(Base):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
+    username = Column(String, unique=True, nullable=False)
+    password_hash = Column(String, nullable=False)
 
 if __name__ == "__main__":
     engine = create_engine("sqlite:///stash_forge.db")
     
     Base.metadata.create_all(engine)
-    print("Đã tạo Database và bảng Product thành công!")
+    print("Đã tạo Database và bảng Product/User thành công!")

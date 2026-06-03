@@ -1,448 +1,241 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  <title>FlowBase | Quản lý Công việc</title>
-  <!-- Bootstrap 5 -->
+  <title>FlowBase | Quản lý công việc</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <!-- Google Font: Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Bootstrap Icons -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-  <!-- AOS Animation -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-
-  <script>
-    // ✅ THIẾT LẬP THEME NGAY LẬP TỨC (Chống nháy trắng)
-    (function() {
-      const savedTheme = localStorage.getItem('theme') || 'light';
-      document.documentElement.setAttribute('data-bs-theme', savedTheme);
-    })();
-    
-    // ✅ GET CSRF TOKEN
-    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  </script>
-
   <style>
     :root {
-      --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --success-gradient: linear-gradient(135deg, #2af598 0%, #009efd 100%);
-      --warning-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      --primary-gradient: linear-gradient(135deg, #4b6cb7, #182848);
+      --surface: rgba(255,255,255,0.92);
+      --surface-dark: rgba(20,20,40,0.88);
     }
 
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       min-height: 100vh;
+      background: linear-gradient(135deg, #f2f4f8 0%, #d9e2ec 100%);
     }
 
     [data-bs-theme="dark"] body {
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
     }
 
-    /* Navbar */
     .navbar-custom {
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255,255,255,0.95);
       backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(0,0,0,0.08);
     }
 
     [data-bs-theme="dark"] .navbar-custom {
-      background: rgba(30, 30, 60, 0.95);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      background: rgba(15,23,42,0.95);
+      border-bottom-color: rgba(255,255,255,0.08);
     }
 
-    .logo-icon {
-      width: 42px;
-      height: 42px;
-      background: var(--primary-gradient);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-    }
-
-    .brand-text {
-      font-weight: 800;
-      font-size: 1.5rem;
-      background: var(--primary-gradient);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    /* Main Card */
     .main-card {
-      background: rgba(255, 255, 255, 0.98);
-      border-radius: 24px;
+      background: var(--surface);
       border: none;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px rgba(15,23,42,0.12);
     }
 
     [data-bs-theme="dark"] .main-card {
-      background: rgba(30, 30, 60, 0.98);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      background: var(--surface-dark);
+      box-shadow: 0 25px 60px rgba(0,0,0,0.32);
     }
 
-    /* Stats Cards */
-    .stat-card {
-      border-radius: 16px;
-      padding: 1.25rem;
-      transition: all 0.3s ease;
-      border: none;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
-    }
-
-    .stat-card.total {
-      background: var(--primary-gradient);
-      color: white;
-    }
-
-    .stat-card.completed {
-      background: var(--success-gradient);
-      color: white;
-    }
-
-    .stat-card.pending {
-      background: var(--warning-gradient);
-      color: white;
-    }
-
-    .stat-icon {
-      font-size: 2rem;
-      opacity: 0.9;
-    }
-
-    .stat-number {
-      font-size: 2.5rem;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .stat-label {
-      font-size: 0.875rem;
-      opacity: 0.9;
-      font-weight: 500;
-    }
-
-    /* Task Input */
     .task-input {
       border-radius: 16px;
-      padding: 16px 20px;
-      font-size: 1rem;
-      border: 2px solid rgba(0, 0, 0, 0.08);
-      background: rgba(248, 249, 250, 0.8);
-      transition: all 0.3s ease;
+      border: 2px solid rgba(102, 126, 234, 0.22);
+      padding: 16px 18px;
+      background: rgba(248,249,250,0.95);
     }
 
     [data-bs-theme="dark"] .task-input {
-      background: rgba(45, 45, 80, 0.8);
-      border-color: rgba(255, 255, 255, 0.08);
+      background: rgba(30,30,60,0.92);
+      border-color: rgba(148,163,184,0.2);
       color: white;
-    }
-
-    .task-input:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.15);
-      background: white;
-    }
-
-    [data-bs-theme="dark"] .task-input:focus {
-      background: rgba(30, 30, 60, 1);
     }
 
     .btn-add-task {
       border-radius: 16px;
-      padding: 16px 32px;
+      padding: 14px 26px;
       font-weight: 600;
-      font-size: 1rem;
-      background: var(--primary-gradient);
-      border: none;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-      transition: all 0.3s ease;
     }
 
-    .btn-add-task:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.5);
+    .task-table th,
+    .task-table td {
+      border-top: none;
+      vertical-align: middle;
     }
 
-    /* Task Item */
-    .task-item {
-      border-radius: 16px;
-      padding: 1rem 1.25rem;
-      margin-bottom: 0.75rem;
-      background: white;
-      border: 1px solid rgba(0, 0, 0, 0.05);
-      transition: all 0.3s ease;
+    .task-table tbody tr:hover {
+      background: rgba(102,126,234,0.08);
     }
 
-    [data-bs-theme="dark"] .task-item {
-      background: rgba(45, 45, 80, 0.6);
-      border-color: rgba(255, 255, 255, 0.05);
+    [data-bs-theme="dark"] .task-table tbody tr:hover {
+      background: rgba(255,255,255,0.08);
     }
 
-    .task-item:hover {
-      transform: translateX(5px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    .badge-status {
+      min-width: 108px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
     }
 
-    .task-item.completed {
-      opacity: 0.7;
-    }
-
-    .task-item.completed .task-title {
-      text-decoration: line-through;
-      color: var(--bs-secondary-color);
-    }
-
-    .task-checkbox {
-      width: 24px;
-      height: 24px;
-      border-radius: 8px;
-      border: 2px solid #667eea;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      flex-shrink: 0;
-    }
-
-    .task-checkbox:hover {
-      background: rgba(102, 126, 234, 0.1);
-    }
-
-    .task-checkbox.checked {
-      background: var(--success-gradient);
-      border-color: transparent;
-      color: white;
-    }
-
-    /* Theme Toggle */
     .theme-toggle {
       width: 44px;
       height: 44px;
-      border-radius: 12px;
-      background: rgba(102, 126, 234, 0.1);
+      border-radius: 14px;
       border: none;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.25rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      background: rgba(102,126,234,0.1);
+      transition: transform 0.2s ease;
     }
 
     .theme-toggle:hover {
-      background: rgba(102, 126, 234, 0.2);
-      transform: rotate(15deg);
+      transform: scale(1.05);
     }
 
-    /* Modal */
-    .modal-custom .modal-content {
-      border-radius: 20px;
-      border: none;
-      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    .toast-custom {
+      min-width: 240px;
+      border-radius: 14px;
     }
 
-    /* Loading */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .loading-spinner {
-      width: 50px;
-      height: 50px;
-      border: 4px solid rgba(255, 255, 255, 0.3);
-      border-top-color: white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    /* Scrollbar */
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: rgba(102, 126, 234, 0.3);
-      border-radius: 3px;
-    }
-
-    /* Animations */
-    .fade-in {
-      animation: fadeIn 0.5s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .slide-in {
-      animation: slideIn 0.3s ease;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateX(-20px); }
-      to { opacity: 1; transform: translateX(0); }
+    .table-responsive {
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
-  <!-- Loading Overlay -->
-  <div id="loadingOverlay" class="loading-overlay d-none">
-    <div class="loading-spinner"></div>
-  </div>
-
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+  <nav class="navbar navbar-expand-lg navbar-custom fixed-top shadow-sm">
     <div class="container">
-      <a class="d-flex align-items-center gap-3 text-decoration-none" href="/">
-        <div class="logo-icon">
-          <i class="bi bi-kanban text-white fs-5"></i>
+      <a class="navbar-brand d-flex align-items-center gap-3" href="/">
+        <div class="rounded-3 bg-primary text-white d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+          <i class="bi bi-kanban-fill fs-5"></i>
         </div>
-        <span class="brand-text">FlowBase</span>
+        <div>
+          <div class="fw-bold mb-0">FlowBase</div>
+          <small class="text-muted">Quản lý công việc</small>
+        </div>
       </a>
-
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2 ms-auto">
         <button class="theme-toggle" id="themeToggle" title="Chuyển đổi giao diện">
-          <i class="bi bi-moon-stars" id="themeIcon"></i>
+          <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
         </button>
-        <a href="/logout" class="btn btn-danger btn-logout">
-          <i class="bi bi-box-arrow-right me-2"></i>Đăng xuất
+        <a href="/logout" class="btn btn-outline-danger btn-sm">
+          <i class="bi bi-box-arrow-right me-1"></i> Đăng xuất
         </a>
       </div>
     </div>
   </nav>
 
-  <!-- Main Content -->
-  <main class="pt-5 mt-4">
-    <div class="container py-4">
+  <main class="pt-5 mt-5">
+    <div class="container py-5">
       <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="main-card p-4" data-aos="fade-up">
-            <!-- Header -->
-            <div class="text-center mb-4">
-              <h1 class="display-6 fw-bold mb-2">
-                <i class="bi bi-list-task text-primary me-2"></i>
-                Danh sách công việc
-              </h1>
-              <p class="text-muted">Quản lý công việc của bạn một cách hiệu quả</p>
-              <hr class="my-4 opacity-25">
+        <div class="col-xl-10 col-lg-11">
+          <div class="main-card p-4 p-lg-5">
+            <div class="text-center mb-5">
+              <h1 class="fw-bold mb-2">Bảng nhiệm vụ nhân viên</h1>
+              <p class="text-muted mb-0">Theo dõi tiến độ công việc nhân viên bằng bảng nhiệm vụ chuyên nghiệp.</p>
             </div>
 
-            <!-- Add Task Form -->
-            <div class="mb-4">
-              <div class="row g-2">
-                <div class="col">
-                  <input 
-                    type="text" 
-                    id="taskInput" 
-                    class="form-control task-input" 
-                    placeholder="Nhập công việc mới..."
-                    maxlength="200"
-                  >
-                </div>
-                <div class="col-auto">
-                  <button id="addBtn" class="btn btn-primary btn-add-task">
-                    <i class="bi bi-plus-lg me-2"></i>Thêm
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Stats -->
             <div class="row g-3 mb-4">
-              <div class="col-4">
-                <div class="stat-card total" data-aos="fade-up" data-aos-delay="100">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div class="stat-number" id="totalTasks">0</div>
-                      <div class="stat-label">Tổng cộng</div>
-                    </div>
-                    <div class="stat-icon">
-                      <i class="bi bi-kanban"></i>
-                    </div>
-                  </div>
+              <div class="col-lg-5">
+                <input
+                  id="taskInput"
+                  class="form-control task-input"
+                  type="text"
+                  placeholder="Nhập tiêu đề nhiệm vụ mới..."
+                  maxlength="200"
+                >
+              </div>
+              <div class="col-lg-3">
+                <input
+                  id="employeeInput"
+                  class="form-control task-input"
+                  type="text"
+                  placeholder="Tên nhân viên"
+                  maxlength="100"
+                >
+              </div>
+              <div class="col-lg-3">
+                <input
+                  id="positionInput"
+                  class="form-control task-input"
+                  type="text"
+                  placeholder="Chức vụ"
+                  maxlength="100"
+                >
+              </div>
+              <div class="col-lg-1 d-grid">
+                <button id="addBtn" class="btn btn-primary btn-add-task">
+                  <i class="bi bi-plus-lg"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="row g-3 mb-4 text-center">
+              <div class="col-sm-4">
+                <div class="p-4 rounded-4 shadow-sm h-100">
+                  <div class="text-muted text-uppercase small mb-2">Tổng nhiệm vụ</div>
+                  <div class="fs-2 fw-bold" id="totalTasks">0</div>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="stat-card completed" data-aos="fade-up" data-aos-delay="200">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div class="stat-number" id="completedTasks">0</div>
-                      <div class="stat-label">Hoàn thành</div>
-                    </div>
-                    <div class="stat-icon">
-                      <i class="bi bi-check-circle"></i>
-                    </div>
-                  </div>
+              <div class="col-sm-4">
+                <div class="p-4 rounded-4 shadow-sm h-100">
+                  <div class="text-muted text-uppercase small mb-2">Hoàn thành</div>
+                  <div class="fs-2 fw-bold text-success" id="completedTasks">0</div>
                 </div>
               </div>
-              <div class="col-4">
-                <div class="stat-card pending" data-aos="fade-up" data-aos-delay="300">
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                      <div class="stat-number" id="pendingTasks">0</div>
-                      <div class="stat-label">Đang làm</div>
-                    </div>
-                    <div class="stat-icon">
-                      <i class="bi bi-hourglass-split"></i>
-                    </div>
-                  </div>
+              <div class="col-sm-4">
+                <div class="p-4 rounded-4 shadow-sm h-100">
+                  <div class="text-muted text-uppercase small mb-2">Còn lại</div>
+                  <div class="fs-2 fw-bold text-warning" id="pendingTasks">0</div>
                 </div>
               </div>
             </div>
 
-            <!-- Filter -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <h5 class="fw-bold mb-0">
-                <i class="bi bi-collection me-2 text-primary"></i>Danh sách
-              </h5>
-              <select id="statusFilter" class="form-select w-auto" style="border-radius: 12px; width: auto;">
-                <option value="all">Tất cả</option>
-                <option value="pending">Chờ làm</option>
-                <option value="completed">Hoàn thành</option>
-              </select>
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
+              <div class="fw-semibold">Danh sách nhiệm vụ</div>
+              <div class="d-flex gap-2 align-items-center">
+                <label class="mb-0 small text-muted">Lọc theo:</label>
+                <select id="statusFilter" class="form-select form-select-sm" style="min-width: 170px;">
+                  <option value="all">Tất cả</option>
+                  <option value="pending">Chờ xử lý</option>
+                  <option value="completed">Hoàn thành</option>
+                </select>
+              </div>
             </div>
 
-            <!-- Task List -->
-            <div class="task-list" id="taskList" style="max-height: 400px; overflow-y: auto;">
-              <!-- Tasks will be rendered here -->
+            <div class="table-responsive mb-3">
+              <table class="table table-borderless align-middle task-table">
+                <thead class="table-light rounded-4">
+                  <tr>
+                    <th class="text-center" style="width: 70px;">#</th>
+                    <th>Công việc</th>
+                    <th>Nhân viên</th>
+                    <th>Chức vụ</th>
+                    <th class="text-center" style="width: 180px;">Trạng thái</th>
+                    <th class="text-center" style="width: 160px;">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="taskList"></tbody>
+              </table>
             </div>
 
-            <!-- Empty State -->
             <div id="emptyState" class="text-center py-5 d-none">
               <div class="mb-3">
-                <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                <i class="bi bi-inbox text-muted" style="font-size: 3.5rem;"></i>
               </div>
-              <h4 class="fw-bold mb-2">Chưa có công việc nào</h4>
-              <p class="text-muted mb-0">Hãy thêm công việc đầu tiên của bạn</p>
+              <h4 class="fw-bold mb-2">Chưa có nhiệm vụ nào</h4>
+              <p class="text-muted mb-0">Thêm nhiệm vụ mới để bắt đầu quản lý tiến độ nhân viên.</p>
             </div>
           </div>
         </div>
@@ -450,22 +243,54 @@
     </div>
   </main>
 
-  <!-- Delete Confirmation Modal -->
-  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-custom">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title fw-bold">
-            <i class="bi bi-exclamation-triangle text-warning me-2"></i>
-            Xác nhận xóa
-          </h5>
+  <div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">Chỉnh sửa nhiệm vụ</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <p>Bạn có chắc chắn muốn xóa công việc này?</p>
-          <p class="text-muted small mb-0">Hành động này không thể hoàn tác.</p>
+          <input type="hidden" id="editTaskId">
+          <div class="mb-3">
+            <label class="form-label">Tiêu đề nhiệm vụ</label>
+            <input id="editTaskInput" class="form-control" type="text" maxlength="200">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tên nhân viên</label>
+            <input id="editEmployeeInput" class="form-control" type="text" maxlength="100">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Chức vụ</label>
+            <input id="editPositionInput" class="form-control" type="text" maxlength="100">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Trạng thái</label>
+            <select id="editStatusSelect" class="form-select">
+              <option value="pending">Chờ xử lý</option>
+              <option value="completed">Hoàn thành</option>
+            </select>
+          </div>
         </div>
-        <div class="modal-footer">
+        <div class="modal-footer border-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn btn-primary" onclick="taskManager.saveEdit()">Lưu</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 shadow-lg">
+        <div class="modal-header border-0">
+          <h5 class="modal-title">Xác nhận xóa nhiệm vụ</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-0">Bạn có chắc chắn muốn xóa nhiệm vụ này? Hành động này không thể hoàn tác.</p>
+        </div>
+        <div class="modal-footer border-0">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
           <button type="button" id="confirmDelete" class="btn btn-danger">Xóa</button>
         </div>
@@ -473,20 +298,11 @@
     </div>
   </div>
 
-  <!-- Toast Container -->
   <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;"></div>
 
-  <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- AOS Animation -->
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-
   <script>
-    // Initialize AOS
-    AOS.init({
-      duration: 800,
-      once: true
-    });
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 
     class TaskManager {
       constructor() {
@@ -497,11 +313,44 @@
       }
 
       async init() {
-        await this.loadTasks();
-        this.initTheme();
+        this.setupTheme();
         this.bindEvents();
+        await this.loadTasks();
         this.updateStats();
         this.render();
+      }
+
+      setupTheme() {
+        const theme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-bs-theme', theme);
+        const themeIcon = document.getElementById('themeIcon');
+        themeIcon.className = theme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+      }
+
+      bindEvents() {
+        document.getElementById('themeToggle').addEventListener('click', () => {
+          const html = document.documentElement;
+          const currentTheme = html.getAttribute('data-bs-theme');
+          const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          html.setAttribute('data-bs-theme', nextTheme);
+          localStorage.setItem('theme', nextTheme);
+          document.getElementById('themeIcon').className = nextTheme === 'dark' ? 'bi bi-sun-fill' : 'bi bi-moon-stars-fill';
+        });
+
+        document.getElementById('addBtn').addEventListener('click', () => this.addTask());
+        document.getElementById('taskInput').addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.addTask();
+          }
+        });
+
+        document.getElementById('statusFilter').addEventListener('change', (e) => {
+          this.filter = e.target.value;
+          this.render();
+        });
+
+        document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
       }
 
       async loadTasks() {
@@ -510,148 +359,48 @@
           const data = await response.json();
           this.tasks = data.tasks || [];
         } catch (error) {
-          console.error('Error loading tasks:', error);
+          console.error('Lỗi tải nhiệm vụ:', error);
           this.tasks = [];
-        }
-      }
-
-      initTheme() {
-        const theme = localStorage.getItem('theme') || 'light';
-        const themeIcon = document.getElementById('themeIcon');
-        
-        if (theme === 'dark') {
-          themeIcon.className = 'bi bi-sun';
-        } else {
-          themeIcon.className = 'bi bi-moon-stars';
-        }
-      }
-
-      // ================= LOADING =================
-      showLoading() {
-        document.getElementById('loadingOverlay').classList.remove('d-none');
-      }
-
-      hideLoading() {
-        document.getElementById('loadingOverlay').classList.add('d-none');
-      }
-
-      // ================= TOAST =================
-      showToast(message, type = 'info') {
-        const container = document.getElementById('toastContainer');
-        const toast = document.createElement('div');
-        
-        const colors = {
-          success: 'success',
-          error: 'danger',
-          info: 'primary',
-          warning: 'warning'
-        };
-        
-        const icons = {
-          success: 'check-circle',
-          error: 'exclamation-circle',
-          info: 'info-circle',
-          warning: 'exclamation-triangle'
-        };
-        
-        toast.className = `toast show toast-custom bg-${colors[type]} text-white`;
-        toast.setAttribute('role', 'alert');
-        toast.setAttribute('aria-live', 'assertive');
-        toast.setAttribute('aria-atomic', 'true');
-        toast.innerHTML = `
-          <div class="toast-body d-flex align-items-center gap-2">
-            <i class="bi bi-${icons[type]}"></i>
-            <span>${message}</span>
-          </div>
-        `;
-        
-        container.appendChild(toast);
-        
-        setTimeout(() => {
-          toast.remove();
-        }, 3000);
-      }
-
-      bindEvents() {
-        // Theme toggle
-        document.getElementById('themeToggle').addEventListener('click', () => {
-          const html = document.documentElement;
-          const themeIcon = document.getElementById('themeIcon');
-          const currentTheme = html.getAttribute('data-bs-theme');
-          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-          
-          html.setAttribute('data-bs-theme', newTheme);
-          localStorage.setItem('theme', newTheme);
-          
-          themeIcon.className = newTheme === 'dark' ? 'bi bi-sun' : 'bi bi-moon-stars';
-        });
-
-        // Add task
-        document.getElementById('addBtn').addEventListener('click', () => this.addTask());
-        document.getElementById('taskInput').addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') this.addTask();
-        });
-
-        // Filter
-        document.getElementById('statusFilter').addEventListener('change', (e) => {
-          this.filter = e.target.value;
-          this.render();
-        });
-
-        // Delete modal
-        document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
-      }
-
-      getFilteredTasks() {
-        switch (this.filter) {
-          case 'pending':
-            return this.tasks.filter(task => !task.done);
-          case 'completed':
-            return this.tasks.filter(task => task.done);
-          default:
-            return this.tasks;
         }
       }
 
       async addTask() {
         const input = document.getElementById('taskInput');
-        const text = input.value.trim();
-        
-        if (!text) {
-          this.showToast('Vui lòng nhập tên công việc', 'warning');
-          return;
-        }
-        
-        if (text.length > 200) {
-          this.showToast('Tên công việc không được quá 200 ký tự', 'warning');
+        const employeeInput = document.getElementById('employeeInput');
+        const positionInput = document.getElementById('positionInput');
+        const title = input.value.trim();
+        const employee = employeeInput.value.trim();
+        const position = positionInput.value.trim();
+        if (!title) {
+          this.showToast('Vui lòng nhập tiêu đề nhiệm vụ', 'warning');
           return;
         }
 
         this.showLoading();
-        
         const formData = new FormData();
-        formData.append('name', text);
+        formData.append('name', title);
+        formData.append('employee', employee);
+        formData.append('position', position);
 
         try {
           const response = await fetch('/add', {
             method: 'POST',
-            headers: {
-              'X-CSRFToken': CSRF_TOKEN
-            },
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
             body: formData
           });
-          
+
           if (response.ok) {
             input.value = '';
-            input.focus();
+            employeeInput.value = '';
+            positionInput.value = '';
             await this.loadTasks();
             this.updateStats();
             this.render();
-            this.showToast('Thêm công việc thành công!', 'success');
+            this.showToast('Đã thêm nhiệm vụ mới', 'success');
           }
         } catch (error) {
-          console.error('Error adding task:', error);
-          this.showToast('Lỗi khi thêm công việc', 'error');
+          console.error('Lỗi thêm nhiệm vụ:', error);
+          this.showToast('Lỗi khi thêm nhiệm vụ', 'danger');
         } finally {
           this.hideLoading();
         }
@@ -659,19 +408,73 @@
 
       async toggleTask(id) {
         this.showLoading();
-        
         try {
           const response = await fetch(`/toggle/${id}`);
-          
           if (response.ok) {
             await this.loadTasks();
             this.updateStats();
             this.render();
-            this.showToast('Cập nhật trạng thái thành công!', 'success');
+            this.showToast('Trạng thái nhiệm vụ đã được cập nhật', 'success');
           }
         } catch (error) {
-          console.error('Error toggling task:', error);
-          this.showToast('Lỗi khi cập nhật', 'error');
+          console.error('Lỗi cập nhật trạng thái:', error);
+          this.showToast('Lỗi khi cập nhật trạng thái', 'danger');
+        } finally {
+          this.hideLoading();
+        }
+      }
+
+      showEditModal(id) {
+        const task = this.tasks.find(item => item.id === id);
+        if (!task) return;
+
+        document.getElementById('editTaskId').value = id;
+        document.getElementById('editTaskInput').value = task.name || '';
+        document.getElementById('editEmployeeInput').value = task.employee || '';
+        document.getElementById('editPositionInput').value = task.position || '';
+        document.getElementById('editStatusSelect').value = task.done ? 'completed' : 'pending';
+
+        const modal = new bootstrap.Modal(document.getElementById('editModal'));
+        modal.show();
+      }
+
+      async saveEdit() {
+        const id = document.getElementById('editTaskId').value;
+        const name = document.getElementById('editTaskInput').value.trim();
+        const employee = document.getElementById('editEmployeeInput').value.trim();
+        const position = document.getElementById('editPositionInput').value.trim();
+        const status = document.getElementById('editStatusSelect').value;
+
+        if (!name) {
+          this.showToast('Vui lòng nhập tiêu đề nhiệm vụ', 'warning');
+          return;
+        }
+
+        this.showLoading();
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('employee', employee);
+        formData.append('position', position);
+        formData.append('status', status);
+
+        try {
+          const response = await fetch(`/edit/${id}`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': CSRF_TOKEN },
+            body: formData
+          });
+
+          if (response.ok) {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('editModal'));
+            modal.hide();
+            await this.loadTasks();
+            this.updateStats();
+            this.render();
+            this.showToast('Đã lưu thay đổi nhiệm vụ', 'success');
+          }
+        } catch (error) {
+          console.error('Lỗi lưu nhiệm vụ:', error);
+          this.showToast('Lỗi khi lưu nhiệm vụ', 'danger');
         } finally {
           this.hideLoading();
         }
@@ -685,30 +488,25 @@
 
       async confirmDelete() {
         if (!this.deleteId) return;
-        
         this.showLoading();
-        
-        // Hide modal
         const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
         modal.hide();
 
         try {
           const response = await fetch(`/delete/${this.deleteId}`, {
             method: 'POST',
-            headers: {
-              'X-CSRFToken': CSRF_TOKEN
-            }
+            headers: { 'X-CSRFToken': CSRF_TOKEN }
           });
-          
+
           if (response.ok) {
             await this.loadTasks();
             this.updateStats();
             this.render();
-            this.showToast('Xóa công việc thành công!', 'success');
+            this.showToast('Đã xóa nhiệm vụ', 'success');
           }
         } catch (error) {
-          console.error('Error deleting task:', error);
-          this.showToast('Lỗi khi xóa công việc', 'error');
+          console.error('Lỗi xóa nhiệm vụ:', error);
+          this.showToast('Lỗi khi xóa nhiệm vụ', 'danger');
         } finally {
           this.hideLoading();
           this.deleteId = null;
@@ -717,9 +515,8 @@
 
       updateStats() {
         const total = this.tasks.length;
-        const completed = this.tasks.filter(t => t.done).length;
+        const completed = this.tasks.filter(task => task.done).length;
         const pending = total - completed;
-        
         document.getElementById('totalTasks').textContent = total;
         document.getElementById('completedTasks').textContent = completed;
         document.getElementById('pendingTasks').textContent = pending;
@@ -729,39 +526,71 @@
         const taskList = document.getElementById('taskList');
         const emptyState = document.getElementById('emptyState');
         const filteredTasks = this.getFilteredTasks();
-        
+
         if (filteredTasks.length === 0) {
           taskList.innerHTML = '';
           emptyState.classList.remove('d-none');
           return;
         }
-        
+
         emptyState.classList.add('d-none');
-        
         taskList.innerHTML = filteredTasks.map((task, index) => `
-          <div class="task-item slide-in ${task.done ? 'completed' : ''}" data-aos="fade-left" data-aos-delay="${index * 50}">
-            <div class="d-flex align-items-center gap-3">
-              <div 
-                class="task-checkbox ${task.done ? 'checked' : ''}" 
-                onclick="taskManager.toggleTask(${task.id})"
-              >
-                ${task.done ? '<i class="bi bi-check"></i>' : ''}
-              </div>
-              <div class="flex-grow-1">
-                <span class="task-title fw-medium">${this.escapeHtml(task.name)}</span>
-              </div>
-              <div class="d-flex gap-1">
-                <button 
-                  class="btn btn-outline-danger btn-sm" 
-                  onclick="taskManager.showDeleteModal(${task.id})"
-                  title="Xóa"
-                >
-                  <i class="bi bi-trash"></i>
-                </button>
-              </div>
-            </div>
-          </div>
+          <tr class="${task.done ? 'table-success' : ''}">
+            <td class="text-center">${index + 1}</td>
+            <td>
+              <div class="fw-semibold">${this.escapeHtml(task.name)}</div>
+              <div class="text-muted small">Nhiệm vụ nhân viên</div>
+            </td>
+            <td>${this.escapeHtml(task.employee || 'Chưa có')}</td>
+            <td>${this.escapeHtml(task.position || 'Chưa có')}</td>
+            <td class="text-center">
+              <span class="badge badge-status ${task.done ? 'bg-success' : 'bg-warning text-dark'}">
+                ${task.done ? 'Hoàn thành' : 'Chờ xử lý'}
+              </span>
+            </td>
+            <td class="text-center">
+              <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="taskManager.showEditModal(${task.id})" title="Sửa nhiệm vụ">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="taskManager.toggleTask(${task.id})" title="Chuyển trạng thái">
+                <i class="bi bi-arrow-repeat"></i>
+              </button>
+              <button type="button" class="btn btn-sm btn-outline-danger" onclick="taskManager.showDeleteModal(${task.id})" title="Xóa nhiệm vụ">
+                <i class="bi bi-trash"></i>
+              </button>
+            </td>
+          </tr>
         `).join('');
+      }
+
+      getFilteredTasks() {
+        if (this.filter === 'pending') {
+          return this.tasks.filter(task => !task.done);
+        }
+        if (this.filter === 'completed') {
+          return this.tasks.filter(task => task.done);
+        }
+        return this.tasks;
+      }
+
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const color = type === 'success' ? 'bg-success' : type === 'danger' ? 'bg-danger' : type === 'warning' ? 'bg-warning text-dark' : 'bg-primary';
+        toast.className = `toast align-items-center text-white ${color} show toast-custom mb-2`;
+        toast.role = 'alert';
+        toast.innerHTML = `<div class="d-flex align-items-center justify-content-between px-3 py-2"><div>${this.escapeHtml(message)}</div><button type="button" class="btn-close btn-close-white ms-3" aria-label="Close"></button></div>`;
+        toast.querySelector('.btn-close')?.addEventListener('click', () => toast.remove());
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+
+      showLoading() {
+        document.body.style.cursor = 'wait';
+      }
+
+      hideLoading() {
+        document.body.style.cursor = 'default';
       }
 
       escapeHtml(text) {
@@ -771,484 +600,7 @@
       }
     }
 
-    // Initialize
     const taskManager = new TaskManager();
-  </script>
-</body>
-</html>
-  <!-- Navigation - ✅ ĐÃ FIX -->
-<nav class="fixed top-0 left-0 right-0 bg-white/80 dark:bg-gray-900/95 backdrop-blur-md shadow-lg border-b border-gray-200/50 dark:border-gray-700/50 p-2 z-40">
-  <div class="max-w-3xl mx-auto flex justify-between items-center">
-    <div class="flex items-center gap-2">
-      <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md">
-        <span class="font-bold text-white text-sm">TF</span>
-      </div>
-      <span class="font-bold text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">TaskForge</span>
-    </div>
-    <div class="flex items-center gap-2">
-      <button id="themeToggle" class="p-1.5 rounded-lg bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 text-lg">
-        <span id="themeIcon">🌙</span>
-      </button>
-      <span class="hidden sm:inline text-xs text-gray-500 dark:text-gray-400 font-medium">Xin chào!</span>
-      <a href="/logout" class="px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-red-600 hover:to-red-700 transform hover:-translate-y-0.5 transition-all duration-200 text-sm">
-        Đăng xuất
-      </a>
-    </div>
-  </div>
-</nav>
-
-  <!-- Main Content -->
-  <main class="pt-20 pb-8 max-w-lg mx-auto">
-    <div class="bg-slate-100/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl p-6 border border-white/50 dark:border-gray-700/50">
-      <!-- Header -->
-      <div class="text-center mb-6">
-        <h1 class="text-2xl sm:text-3xl font-black bg-gradient-to-r from-gray-900 to-gray-700 dark:from-blue-400 dark:to-purple-400 bg-clip-text text-transparent mb-2">
-          Danh sách Tasks
-        </h1>
-        <p class="text-gray-600 dark:text-gray-400 text-sm max-w-md mx-auto">
-          Quản lý công việc một cách thông minh và trực quan
-        </p>
-        <div class="flex justify-center mt-4">
-          <div class="w-16 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
-        </div>
-      </div>
-
-      <!-- ✅ Add Task Form (CHỈ INPUT + BUTTON - ĐÃ TÁCH RIÊNG) -->
-      <div class="flex gap-2 mb-6">
-        <div class="relative group flex-1">
-          <input 
-            id="taskInput" 
-            placeholder="Nhập task mới..." 
-            class="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all duration-300 text-base placeholder-gray-500"
-          >
-          <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-        </div>
-        <button 
-          id="addBtn" 
-          class="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-3 rounded-xl font-bold text-sm shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 whitespace-nowrap flex-shrink-0"
-        >
-          Thêm
-        </button>
-      </div>
-
-      <!-- Stats -->
-      <div class="grid grid-cols-3 gap-3 mb-6 p-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-500/10 dark:to-purple-500/10 rounded-xl border-2 border-blue-200 dark:border-blue-500/30 shadow-sm">
-        <div class="text-center p-2 bg-white dark:bg-gray-700/50 rounded-lg">
-          <div class="text-2xl font-black text-blue-600 dark:text-blue-400" id="totalTasks">0</div>
-          <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">Tổng</div>
-        </div>
-        <div class="text-center p-2 bg-white dark:bg-gray-700/50 rounded-lg">
-          <div class="text-2xl font-black text-green-600 dark:text-green-400" id="completedTasks">0</div>
-          <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">Hoàn thành</div>
-        </div>
-        <div class="text-center p-2 bg-white dark:bg-gray-700/50 rounded-lg">
-          <div class="text-2xl font-black text-orange-600 dark:text-orange-400" id="pendingTasks">0</div>
-          <div class="text-xs font-semibold text-gray-700 dark:text-gray-300">Còn lại</div>
-        </div>
-      </div>
-
-      <!-- ✅ FILTER ĐƯỢC ĐƯA XUỐNG ĐÂY - GIỮA STATS VÀ TASK LIST -->
-      <div class="mb-6 flex justify-end">
-        <div class="max-w-48">
-          <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Lọc theo trạng thái:</label>
-          <select id="statusFilter" class="w-full px-2 py-1 text-xs bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm border-2 border-gray-200/50 dark:border-gray-600/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition-all appearance-none cursor-pointer">
-            <option value="all">Tất cả</option>
-            <option value="pending">Chờ làm</option>
-            <option value="completed">Hoàn thành</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Task List -->
-      <div class="space-y-2 max-h-80 overflow-y-auto pr-1" id="taskList">
-        <!-- Tasks will be rendered here -->
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyState" class="text-center py-12 hidden">
-        <div class="w-20 h-20 mx-auto mb-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl flex items-center justify-center">
-          <span class="text-2xl">📝</span>
-        </div>
-        <h3 class="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">Chưa có task nào!</h3>
-        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">Hãy thêm task đầu tiên của bạn</p>
-      </div>
-    </div>
-  </main>
-
-  <!-- Delete Confirmation Modal -->
-  <div id="deleteModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 max-w-sm mx-4 shadow-xl">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Xác nhận xóa</h3>
-      <p class="text-gray-600 dark:text-gray-400 mb-6">Bạn có chắc muốn xóa task này?<br><span class="text-sm text-red-500">Hành động này không thể hoàn tác.</span></p>
-      <div class="flex gap-3 justify-end">
-        <button id="cancelDelete" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Hủy</button>
-        <button id="confirmDelete" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">Xóa</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading Spinner -->
-  <div id="loadingSpinner" class="fixed inset-0 bg-black/30 flex items-center justify-center hidden z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-xl">
-      <div class="flex items-center justify-center gap-3">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-        <span class="text-gray-700 dark:text-gray-300">Đang xử lý...</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- Toast Notification -->
-  <div id="toastContainer" class="fixed top-20 right-4 z-50 flex flex-col gap-2"></div>
-
-  <script>
-class TaskForge {
-  constructor() {
-    this.tasks = [];
-    this.editingId = null;
-    this.filter = 'all';
-    this.deleteId = null;
-    this.init();
-  }
-
-  async init() {
-    await this.loadTasks();
-    this.initTheme();
-    this.bindEvents();
-    this.updateStats();
-    this.render();
-  }
-
-  async loadTasks() {
-    try {
-      const response = await fetch('/api/tasks');
-      const data = await response.json();
-      this.tasks = data.tasks || [];
-    } catch (error) {
-      console.error('Error loading tasks:', error);
-      this.tasks = [];
-    }
-  }
-
-  initTheme() {
-    const themeIcon = document.getElementById('themeIcon');
-    const isDark = document.documentElement.classList.contains('dark');
-    themeIcon.textContent = isDark ? '☀️' : '🌙';
-  }
-
-  // ================= LOADING SPINNER =================
-  showLoading() {
-    document.getElementById('loadingSpinner').classList.remove('hidden');
-  }
-
-  hideLoading() {
-    document.getElementById('loadingSpinner').classList.add('hidden');
-  }
-
-  // ================= TOAST NOTIFICATIONS =================
-  showToast(message, type = 'info') {
-    const container = document.getElementById('toastContainer');
-    const toast = document.createElement('div');
-    
-    const colors = {
-      success: 'bg-green-500',
-      error: 'bg-red-500',
-      info: 'bg-blue-500',
-      warning: 'bg-yellow-500'
-    };
-    
-    const icons = {
-      success: '✓',
-      error: '✕',
-      info: 'ℹ',
-      warning: '⚠'
-    };
-    
-    toast.className = `${colors[type]} text-white px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 animate-pulse`;
-    toast.innerHTML = `
-      <span class="font-bold">${icons[type]}</span>
-      <span class="text-sm font-medium">${message}</span>
-    `;
-    
-    container.appendChild(toast);
-    
-    // Auto remove after 3 seconds
-    setTimeout(() => {
-      toast.remove();
-    }, 3000);
-  }
-
-  bindEvents() {
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      const html = document.documentElement;
-      const themeIcon = document.getElementById('themeIcon');
-      const isDark = html.classList.toggle('dark');
-      themeIcon.textContent = isDark ? '☀️' : '🌙';
-      localStorage.setItem('theme', isDark ? 'dark' : 'light');
-    });
-
-    // Add task
-    document.getElementById('addBtn').addEventListener('click', () => this.addTask());
-    document.getElementById('taskInput').addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') this.addTask();
-    });
-    document.getElementById('addFirstTask')?.addEventListener('click', () => this.addTask());
-
-    // Filter
-    document.getElementById('statusFilter').addEventListener('change', (e) => {
-      this.filter = e.target.value;
-      this.render();
-    });
-
-    // Delete modal events
-    document.getElementById('cancelDelete').addEventListener('click', () => this.hideDeleteModal());
-    document.getElementById('confirmDelete').addEventListener('click', () => this.confirmDelete());
-
-    // Close modal when clicking outside
-    document.getElementById('deleteModal').addEventListener('click', (e) => {
-      if (e.target.id === 'deleteModal') this.hideDeleteModal();
-    });
-  }
-
-  getFilteredTasks() {
-    switch (this.filter) {
-      case 'pending':
-        return this.tasks.filter(task => !task.done);
-      case 'completed':
-        return this.tasks.filter(task => task.done);
-      default:
-        return this.tasks;
-    }
-  }
-
-  async addTask() {
-    const input = document.getElementById('taskInput');
-    const text = input.value.trim();
-    if (!text || text.length > 200) {
-      this.showToast('Vui lòng nhập tên task (tối đa 200 ký tự)', 'warning');
-      return;
-    }
-
-    this.showLoading();
-    const formData = new FormData();
-    formData.append('name', text);
-
-    try {
-      const response = await fetch('/add', {
-        method: 'POST',
-        headers: {
-          'X-CSRFToken': CSRF_TOKEN
-        },
-        body: formData
-      });
-      if (response.ok) {
-        input.value = '';
-        input.focus();
-        await this.loadTasks();
-        this.updateStats();
-        this.render();
-        this.showToast('Thêm task thành công!', 'success');
-      }
-    } catch (error) {
-      console.error('Error adding task:', error);
-      this.showToast('Lỗi khi thêm task', 'error');
-    } finally {
-      this.hideLoading();
-    }
-  }
-
-  async toggleTask(id) {
-    this.showLoading();
-    try {
-      const response = await fetch(`/toggle/${id}`);
-      if (response.ok) {
-        await this.loadTasks();
-        this.updateStats();
-        this.render();
-        this.showToast('Cập nhật trạng thái thành công!', 'success');
-      }
-    } catch (error) {
-      console.error('Error toggling task:', error);
-      this.showToast('Lỗi khi cập nhật task', 'error');
-    } finally {
-      this.hideLoading();
-    }
-  }
-
-  startEdit(id) {
-    this.editingId = id;
-    this.render();
-    setTimeout(() => {
-      const input = document.getElementById(`edit-input-${id}`);
-      input?.focus();
-      input?.select();
-    }, 100);
-  }
-
-  async saveEdit(id) {
-    const input = document.getElementById(`edit-input-${id}`);
-    const task = this.tasks.find(t => t.id === id);
-    if (task && input?.value.trim()) {
-      this.showLoading();
-      const formData = new FormData();
-      formData.append('name', input.value.trim());
-      formData.append('status', task.done ? 'done' : 'pending');
-
-      try {
-        const response = await fetch(`/edit/${id}`, {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': CSRF_TOKEN
-          },
-          body: formData
-        });
-        if (response.ok) {
-          this.editingId = null;
-          await this.loadTasks();
-          this.updateStats();
-          this.render();
-          this.showToast('Cập nhật task thành công!', 'success');
-        }
-      } catch (error) {
-        console.error('Error saving edit:', error);
-        this.showToast('Lỗi khi cập nhật task', 'error');
-      } finally {
-        this.hideLoading();
-      }
-    }
-  }
-
-  cancelEdit() {
-    this.editingId = null;
-    this.render();
-  }
-
-  showDeleteModal(id) {
-    this.deleteId = id;
-    document.getElementById('deleteModal').classList.remove('hidden');
-  }
-
-  hideDeleteModal() {
-    document.getElementById('deleteModal').classList.add('hidden');
-    this.deleteId = null;
-  }
-
-  async confirmDelete() {
-    if (this.deleteId) {
-      this.hideDeleteModal();
-      this.showLoading();
-      try {
-        const response = await fetch(`/delete/${this.deleteId}`);
-        if (response.ok) {
-          await this.loadTasks();
-          this.updateStats();
-          this.render();
-          this.showToast('Xóa task thành công!', 'success');
-        }
-      } catch (error) {
-        console.error('Error deleting task:', error);
-        this.showToast('Lỗi khi xóa task', 'error');
-      } finally {
-        this.hideLoading();
-      }
-    }
-  }
-
-  deleteTask(id) {
-    this.showDeleteModal(id);
-  }
-
-  updateStats() {
-    const total = this.tasks.length;
-    const completed = this.tasks.filter(t => t.done).length;
-    const pending = total - completed;
-
-    document.getElementById('totalTasks').textContent = total;
-    document.getElementById('completedTasks').textContent = completed;
-    document.getElementById('pendingTasks').textContent = pending;
-  }
-
-  render() {
-    const list = document.getElementById('taskList');
-    const emptyState = document.getElementById('emptyState');
-    const filteredTasks = this.getFilteredTasks();
-    
-    if (filteredTasks.length === 0) {
-      list.classList.add('hidden');
-      emptyState.classList.remove('hidden');
-      return;
-    }
-
-    list.classList.remove('hidden');
-    emptyState.classList.add('hidden');
-
-    list.innerHTML = filteredTasks.map(task => {
-      const isEditing = this.editingId === task.id;
-      const isDone = task.done;
-
-      return `
-        <div class="task-item group bg-white/50 dark:bg-gray-700/50 backdrop-blur-sm rounded-lg p-2.5 border border-white/30 dark:border-gray-600/50 shadow-sm hover:shadow-md">
-          <div class="flex items-start justify-between gap-2">
-            <!-- Task Content -->
-            <div class="flex-1 flex items-start gap-2 min-w-0">
-              ${isEditing ? `
-                <input 
-                  id="edit-input-${task.id}" 
-                  class="flex-1 px-2.5 py-1.5 rounded-md border-2 border-blue-200 dark:border-blue-500/50 bg-white dark:bg-gray-600 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 transition-all text-sm font-medium"
-                  value="${task.text.replace(/"/g, '&quot;')}"
-                  onkeypress="if(event.key==='Enter') taskApp.saveEdit(${task.id})"
-                >
-              ` : `
-                <button 
-                  onclick="taskApp.toggleTask(${task.id})"
-                  class="flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center text-xs font-bold mt-0.5 transition-all duration-200 ${
-                    isDone 
-                      ? 'bg-green-500 text-white border-green-500 scale-105 shadow-sm' 
-                      : 'bg-white dark:bg-gray-600 border-gray-300 dark:border-gray-500 hover:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20'
-                  }"
-                >
-                  ${isDone ? '✓' : ''}
-                </button>
-                <span class="flex-1 pr-1 text-sm font-medium cursor-pointer select-none transition-all group-hover:pr-0 min-w-0 truncate ${
-                  isDone ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400'
-                }" onclick="taskApp.toggleTask(${task.id})">${task.text}</span>
-              `}
-            </div>
-
-            <!-- Actions -->
-            <div class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-all duration-200 flex-shrink-0">
-              ${isEditing ? `
-                <button 
-                  onclick="taskApp.saveEdit(${task.id})" 
-                  class="p-1 text-green-500 hover:text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-md transition-all text-xs"
-                  title="Lưu"
-                >✓</button>
-                <button 
-                  onclick="taskApp.cancelEdit()" 
-                  class="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600/30 rounded-md transition-all text-xs"
-                  title="Hủy"
-                >✕</button>
-              ` : `
-                <button 
-                  onclick="taskApp.startEdit(${task.id})" 
-                  class="p-1 text-blue-500 hover:text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-md transition-all text-xs"
-                  title="Sửa"
-                >✏️</button>
-                <button 
-                  onclick="taskApp.deleteTask(${task.id})" 
-                  class="p-1 text-red-500 hover:text-red-600 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-md transition-all text-xs"
-                  title="Xóa"
-                >🗑️</button>
-              `}
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-}
-
-const taskApp = new TaskForge();
   </script>
 </body>
 </html>
