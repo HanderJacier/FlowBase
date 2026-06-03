@@ -87,6 +87,27 @@
       letter-spacing: 0.02em;
     }
 
+    .task-table thead {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(139, 92, 246, 0.12));
+      border-radius: 12px;
+    }
+
+    .task-table thead th {
+      font-weight: 600;
+      background-color: #1e40af;
+      color: white;
+      border: none;
+      padding: 14px 12px;
+    }
+
+    [data-bs-theme="dark"] .task-table thead {
+      background: linear-gradient(135deg, rgba(96, 165, 250, 0.25), rgba(168, 85, 247, 0.2));
+    }
+
+    [data-bs-theme="dark"] .task-table thead th {
+      color: #bfdbfe;
+    }
+
     .theme-toggle {
       width: 44px;
       height: 44px;
@@ -101,6 +122,32 @@
 
     .theme-toggle:hover {
       transform: scale(1.05);
+    }
+
+    .form-check-input {
+      width: 22px;
+      height: 22px;
+      border: 2px solid #1e40af;
+      background-color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .form-check-input:checked {
+      background-color: #1e40af;
+      border-color: #1e40af;
+      box-shadow: 0 0 0 0.25rem rgba(30, 64, 175, 0.25);
+    }
+
+    [data-bs-theme="dark"] .form-check-input {
+      border-color: #60a5fa;
+      background-color: transparent;
+    }
+
+    [data-bs-theme="dark"] .form-check-input:checked {
+      background-color: #60a5fa;
+      border-color: #60a5fa;
+      box-shadow: 0 0 0 0.25rem rgba(96, 165, 250, 0.25);
     }
 
     .toast-custom {
@@ -204,9 +251,20 @@
 
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mb-3">
               <div class="fw-semibold">Danh sách nhiệm vụ</div>
-              <div class="d-flex gap-2 align-items-center">
-                <label class="mb-0 small text-muted">Lọc theo:</label>
-                <select id="statusFilter" class="form-select form-select-sm" style="min-width: 170px;">
+              <div class="d-flex gap-2 align-items-center flex-nowrap">
+                <button id="clearAllBtn" type="button" class="btn btn-sm btn-outline-danger">
+                  Xóa
+                </button>
+                <div id="bulkDeleteActions" class="d-none d-flex gap-2">
+                  <button id="deleteSelectedBtn" type="button" class="btn btn-sm btn-danger" onclick="taskManager.deleteSelectedTasks()">
+                    Xóa
+                  </button>
+                  <button id="cancelBulkDeleteBtn" type="button" class="btn btn-sm btn-outline-secondary" onclick="taskManager.disableBulkDelete()">
+                    Hủy
+                  </button>
+                </div>
+                <label class="mb-0 small text-muted text-nowrap">Lọc theo:</label>
+                <select id="statusFilter" class="form-select form-select-sm" style="min-width: 140px; max-width: 160px;">
                   <option value="all">Tất cả</option>
                   <option value="pending">Chờ xử lý</option>
                   <option value="completed">Hoàn thành</option>
@@ -216,7 +274,7 @@
 
             <div class="table-responsive mb-3">
               <table class="table table-borderless align-middle task-table">
-                <thead class="table-light rounded-4">
+                <thead>
                   <tr>
                     <th class="text-center" style="width: 70px;">#</th>
                     <th>Công việc</th>
@@ -309,6 +367,8 @@
         this.tasks = [];
         this.filter = 'all';
         this.deleteId = null;
+        this.bulkDeleteMode = false;
+        this.selectedTaskIds = new Set();
         this.init();
       }
 
@@ -338,6 +398,7 @@
         });
 
         document.getElementById('addBtn').addEventListener('click', () => this.addTask());
+        document.getElementById('clearAllBtn').addEventListener('click', () => this.enableBulkDelete());
         document.getElementById('taskInput').addEventListener('keypress', (e) => {
           if (e.key === 'Enter') {
             e.preventDefault();
@@ -361,6 +422,88 @@
         } catch (error) {
           console.error('Lỗi tải nhiệm vụ:', error);
           this.tasks = [];
+        }
+      }
+
+      enableBulkDelete() {
+        this.bulkDeleteMode = true;
+        this.selectedTaskIds.clear();
+        document.getElementById('clearAllBtn').classList.add('d-none');
+        document.getElementById('bulkDeleteActions').classList.remove('d-none');
+        this.render();
+      }
+
+      disableBulkDelete() {
+        this.bulkDeleteMode = false;
+        this.selectedTaskIds.clear();
+        document.getElementById('bulkDeleteActions').classList.add('d-none');
+        document.getElementById('clearAllBtn').classList.remove('d-none');
+        this.render();
+      }
+
+      toggleTaskSelection(id) {
+        if (this.selectedTaskIds.has(id)) {
+          this.selectedTaskIds.delete(id);
+        } else {
+          this.selectedTaskIds.add(id);
+        }
+        this.render();
+      }
+
+      async deleteSelectedTasks() {
+        if (this.selectedTaskIds.size === 0) {
+          this.showToast('Vui lòng chọn nhiệm vụ để xóa', 'warning');
+          return;
+        }
+
+        this.showLoading();
+        try {
+          for (const taskId of this.selectedTaskIds) {
+            await fetch(`/delete/${taskId}`, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': CSRF_TOKEN }
+            });
+          }
+          this.selectedTaskIds.clear();
+          await this.loadTasks();
+          this.updateStats();
+          this.render();
+          this.showToast('Đã xóa các nhiệm vụ đã chọn', 'success');
+        } catch (error) {
+          console.error('Lỗi xóa nhiệm vụ:', error);
+          this.showToast('Lỗi khi xóa nhiệm vụ', 'danger');
+        } finally {
+          this.hideLoading();
+        }
+      }
+
+
+
+      async clearAllTasks() {
+        if (!this.tasks.length) {
+          this.showToast('Không có nhiệm vụ để xóa', 'info');
+          this.disableBulkDelete();
+          return;
+        }
+
+        this.showLoading();
+        try {
+          for (const task of [...this.tasks]) {
+            await fetch(`/delete/${task.id}`, {
+              method: 'POST',
+              headers: { 'X-CSRFToken': CSRF_TOKEN }
+            });
+          }
+          await this.loadTasks();
+          this.updateStats();
+          this.render();
+          this.showToast('Đã xóa toàn bộ nhiệm vụ', 'success');
+        } catch (error) {
+          console.error('Lỗi xóa toàn bộ nhiệm vụ:', error);
+          this.showToast('Lỗi khi xóa nhiệm vụ', 'danger');
+        } finally {
+          this.hideLoading();
+          this.disableBulkDelete();
         }
       }
 
@@ -548,15 +691,19 @@
               </span>
             </td>
             <td class="text-center">
-              <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="taskManager.showEditModal(${task.id})" title="Sửa nhiệm vụ">
-                <i class="bi bi-pencil"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="taskManager.toggleTask(${task.id})" title="Chuyển trạng thái">
-                <i class="bi bi-arrow-repeat"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-outline-danger" onclick="taskManager.showDeleteModal(${task.id})" title="Xóa nhiệm vụ">
-                <i class="bi bi-trash"></i>
-              </button>
+              ${this.bulkDeleteMode ? `
+                <input type="checkbox" class="form-check-input" onchange="taskManager.toggleTaskSelection(${task.id})" ${this.selectedTaskIds.has(task.id) ? 'checked' : ''}>
+              ` : `
+                <button type="button" class="btn btn-sm btn-outline-secondary me-1" onclick="taskManager.showEditModal(${task.id})" title="Sửa nhiệm vụ">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-primary me-1" onclick="taskManager.toggleTask(${task.id})" title="Chuyển trạng thái">
+                  <i class="bi bi-arrow-repeat"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="taskManager.showDeleteModal(${task.id})" title="Xóa nhiệm vụ">
+                  <i class="bi bi-trash"></i>
+                </button>
+              `}
             </td>
           </tr>
         `).join('');
