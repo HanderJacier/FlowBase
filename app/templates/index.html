@@ -535,11 +535,10 @@
 
         emptyState.classList.add('d-none');
         taskList.innerHTML = filteredTasks.map((task, index) => `
-          <tr class="${task.done ? 'table-success' : ''}">
+          <tr>
             <td class="text-center">${index + 1}</td>
             <td>
               <div class="fw-semibold">${this.escapeHtml(task.name)}</div>
-              <div class="text-muted small">Nhiệm vụ nhân viên</div>
             </td>
             <td>${this.escapeHtml(task.employee || 'Chưa có')}</td>
             <td>${this.escapeHtml(task.position || 'Chưa có')}</td>
