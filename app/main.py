@@ -144,22 +144,27 @@ def api_tasks():
 @app.route('/add', methods=['POST'])
 @login_required
 def add_task():
-    name = request.form.get('name')
-    employee = request.form.get('employee', '')
-    position = request.form.get('position', '')
-    if name:
-        session_db = get_db_session()
-        new_product = Product(
-            name=name,
-            sku=str(uuid.uuid4()),
-            quantity=0,
-            employee=employee,
-            position=position
-        )
-        session_db.add(new_product)
-        session_db.commit()
-        session_db.close()
-    return redirect(url_for('index'))
+    name = request.form.get('name', '').strip()
+    employee = request.form.get('employee', '').strip()
+    position = request.form.get('position', '').strip()
+
+    if not name:
+        return jsonify({'error': 'Vui lòng nhập tiêu đề nhiệm vụ'}), 400
+    if not employee:
+        return jsonify({'error': 'Vui lòng nhập tên nhân viên'}), 400
+
+    session_db = get_db_session()
+    new_product = Product(
+        name=name,
+        sku=str(uuid.uuid4()),
+        quantity=0,
+        employee=employee,
+        position=position
+    )
+    session_db.add(new_product)
+    session_db.commit()
+    session_db.close()
+    return jsonify({'success': True})
 
 @app.route('/edit/<int:task_id>', methods=['POST'])
 @login_required

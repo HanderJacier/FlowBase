@@ -537,6 +537,10 @@
           this.showToast('Vui lòng nhập tiêu đề nhiệm vụ', 'warning');
           return;
         }
+        if (!employee) {
+          this.showToast('Vui lòng nhập tên nhân viên', 'warning');
+          return;
+        }
 
         this.showLoading();
         const formData = new FormData();
@@ -551,15 +555,19 @@
             body: formData
           });
 
-          if (response.ok) {
-            input.value = '';
-            employeeInput.value = '';
-            positionInput.value = '';
-            await this.loadTasks();
-            this.updateStats();
-            this.render();
-            this.showToast('Đã thêm nhiệm vụ mới', 'success');
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            this.showToast(errorData?.error || 'Lỗi khi thêm nhiệm vụ', 'danger');
+            return;
           }
+
+          input.value = '';
+          employeeInput.value = '';
+          positionInput.value = '';
+          await this.loadTasks();
+          this.updateStats();
+          this.render();
+          this.showToast('Đã thêm nhiệm vụ mới', 'success');
         } catch (error) {
           console.error('Lỗi thêm nhiệm vụ:', error);
           this.showToast('Lỗi khi thêm nhiệm vụ', 'danger');
