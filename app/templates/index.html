@@ -223,13 +223,12 @@
                 >
               </div>
               <div class="col-lg-3">
-                <input
-                  id="employeeInput"
-                  class="form-control task-input"
-                  type="text"
-                  placeholder="Tên nhân viên"
-                  maxlength="100"
-                >
+                <select id="employeeInput" class="form-select task-input">
+                  <option value="">Chọn nhân viên</option>
+                  {% for u in users %}
+                    <option value="{{ u.username }}">{{ u.username }}</option>
+                  {% endfor %}
+                </select>
               </div>
               <div class="col-lg-3">
                 <input
@@ -335,7 +334,12 @@
           </div>
           <div class="mb-3">
             <label class="form-label">Tên nhân viên</label>
-            <input id="editEmployeeInput" class="form-control" type="text" maxlength="100">
+            <select id="editEmployeeInput" class="form-select">
+              <option value="">Chọn nhân viên</option>
+              {% for u in users %}
+                <option value="{{ u.username }}">{{ u.username }}</option>
+              {% endfor %}
+            </select>
           </div>
           <div class="mb-3">
             <label class="form-label">Chức vụ</label>
@@ -537,7 +541,7 @@
           return;
         }
         if (!employee) {
-          this.showToast('Vui lòng nhập tên nhân viên', 'warning');
+          this.showToast('Vui lòng chọn tên nhân viên', 'warning');
           return;
         }
 

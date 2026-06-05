@@ -62,8 +62,9 @@ def validate_csrf():
 def index():
     session_db = get_db_session()
     products = session_db.query(Product).all()
+    users = session_db.query(User).all()
     session_db.close()
-    return render_template('index.html', products=products)
+    return render_template('index.html', products=products, users=users)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -151,7 +152,7 @@ def add_task():
     if not name:
         return jsonify({'error': 'Vui lòng nhập tiêu đề nhiệm vụ'}), 400
     if not employee:
-        return jsonify({'error': 'Vui lòng nhập tên nhân viên'}), 400
+        return jsonify({'error': 'Vui lòng chọn tên nhân viên'}), 400
 
     session_db = get_db_session()
     new_product = Product(
